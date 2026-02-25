@@ -1,0 +1,105 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: VPC-natbro2615 with two public subnets, Internet Gateway, and public routing.
+
+Resources:
+  VPCnatbro2615:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: VPC-natbro2615
+        - Key: Project
+          Value: natbro2615
+
+  PublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPCnatbro2615
+      CidrBlock: 10.0.1.0/24
+      AvailabilityZone: !Select [0, !GetAZs '']
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: VPC-natbro2615-public-subnet-1
+        - Key: Project
+          Value: natbro2615
+        - Key: Network
+          Value: Public
+
+  PublicSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPCnatbro2615
+      CidrBlock: 10.0.2.0/24
+      AvailabilityZone: !Select [1, !GetAZs '']
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: VPC-natbro2615-public-subnet-2
+        - Key: Project
+          Value: natbro2615
+        - Key: Network
+          Value: Public
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: VPC-natbro2615-igw
+        - Key: Project
+          Value: natbro2615
+
+  InternetGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref VPCnatbro2615
+      InternetGatewayId: !Ref InternetGateway
+
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPCnatbro2615
+      Tags:
+        - Key: Name
+          Value: VPC-natbro2615-public-rt
+        - Key: Project
+          Value: natbro2615
+        - Key: Network
+          Value: Public
+
+  PublicDefaultRoute:
+    Type: AWS::EC2::Route
+    DependsOn: InternetGatewayAttachment
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  PublicSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet1
+      RouteTableId: !Ref PublicRouteTable
+
+  PublicSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet2
+      RouteTableId: !Ref PublicRouteTable
+
+Outputs:
+  VpcId:
+    Description: ID of the created VPC.
+    Value: !Ref VPCnatbro2615
+
+  PublicSubnet1Id:
+    Description: ID of the first public subnet.
+    Value: !Ref PublicSubnet1
+
+  PublicSubnet2Id:
+    Description: ID of the second public subnet.
+    Value: !Ref PublicSubnet2

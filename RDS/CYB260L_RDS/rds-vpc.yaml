@@ -1,4 +1,7 @@
 AWSTemplateFormatVersion: '2010-09-09'
+# Description of what this change includes: Validated with AWS CloudFormation
+# Revision number: 1
+# Date: 06-14-2026
 Description: VPC-natbro2615 with two public subnets, Internet Gateway, and public routing.
 
 Resources:
